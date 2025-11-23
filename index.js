@@ -139,12 +139,12 @@ function startProject() {
 
   child.stdout.on("data", (data) => {
     const msg = data.toString().trim();
-    console.log("[𝐀𝐫𝐚𝐟𝐚𝐭 🤫]", msg);
+    console.log("[𝐀𝐫𝐚𝐟𝐚𝐭 𝐒𝐚𝐫𝐝𝐞𝐫]", msg);
   });
 
   child.stderr.on("data", (data) => {
     const err = data.toString().trim();
-    console.log("[𝐀𝐫𝐚𝐟𝐚𝐭 𝐄𝐫𝐫𝐨𝐫 🙄]", err);
+    console.log("[CMD LOADING]", err);
   });
 
   child.on("close", (code) => {
