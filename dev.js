@@ -5,7 +5,7 @@ module.exports = {
 	config: {
 		name: "dev",
 		version: "1.5",
-		author: "NAFIJ PRO (Modded NTKhang)",
+		author: "Arafat",
 		countDown: 5,
 		role: 0,
 		shortDescription: {
