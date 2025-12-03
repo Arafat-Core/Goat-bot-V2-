@@ -38,19 +38,25 @@ module.exports = {
 
     if (!supported.some(domain => url.includes(domain))) return;
 
+    // ===========================
+    // CACHE FOLDER AUTO-CREATE
+    // ===========================
+    const cachePath = path.join(__dirname, "cache");
+    if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath);
+    // ===========================
+
     try {
       const waitMsg = await api.sendMessage(
-        "𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐩𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝐚 𝐟𝐞𝐰 𝐦𝐨𝐦𝐞𝐧𝐭...!! (;´༎ຶٹ༎ຶ`)",
+        "𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐩𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝐚 𝐟𝐞𝐰 𝐦𝐨𝐦𝐞𝐧𝐭...!!",
         event.threadID
       );
 
-      // GitHub থেকে API Base লোড
       const gitRaw = "https://raw.githubusercontent.com/Arafat-Core/cmds/refs/heads/main/api.json";
       const apiJson = (await axios.get(gitRaw)).data;
 
       if (!apiJson?.api) throw new Error("𝐀𝐏𝐈 𝐁𝐚𝐬𝐞 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
 
-      const BASE_API = `${apiJson.api}/all-dl/all-dl`;
+      const BASE_API = `${apiJson.api}/arafatdl/all-dl`;
 
       const { data } = await axios.get(BASE_API, {
         params: { url: url },
@@ -60,8 +66,8 @@ module.exports = {
       if (!data?.url) throw new Error("𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐔𝐑𝐋 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
 
       const videoBuffer = (await axios.get(data.url, { responseType: "arraybuffer" })).data;
+      const savePath = path.join(cachePath, `autodl_${Date.now()}.mp4`);
 
-      const savePath = path.join(__dirname, "cache", `autodl_${Date.now()}.mp4`);
       fs.writeFileSync(savePath, videoBuffer);
 
       await api.unsendMessage(waitMsg.messageID);
@@ -72,7 +78,7 @@ module.exports = {
       }, event.threadID, () => fs.unlinkSync(savePath), event.messageID);
 
     } catch (err) {
-      api.sendMessage(`⚠️ 𝐄𝐫𝐫𝐨𝐫: ${err.message}`, event.threadID, event.messageID);
+      api.sendMessage(`⚠️ 𝐄𝐫𝐫𝐨𝐫: 𝐀𝐫𝐚𝐟𝐚𝐭 𝐅𝐢𝐱𝐢𝐧𝐠 𝐓𝐡𝐞 𝐄𝐫𝐫𝐨𝐫 ༼ つ ◕◡◕ ༽つ`, event.threadID, event.messageID);
     }
   }
 };
