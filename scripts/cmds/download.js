@@ -4,21 +4,21 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "autodl",
-    version: "2.2.0",
+    name: "download",
+    version: "2.3.0",
     author: "Arafat",
     countDown: 0,
     role: 0,
-    shortDescription: "Auto download when link sent",
-    longDescription: "Automatically downloads videos from TikTok, Facebook, Instagram, YouTube, X (Twitter) and more when user sends a link.",
+    shortDescription: "𝐀𝐮𝐭𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐰𝐡𝐞𝐧 𝐥𝐢𝐧𝐤 𝐬𝐞𝐧𝐭",
+    longDescription: "𝐀𝐮𝐭𝐨𝐦𝐚𝐭𝐢𝐜𝐚𝐥𝐥𝐲 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐬 𝐯𝐢𝐝𝐞𝐨𝐬 𝐟𝐫𝐨𝐦 𝐓𝐢𝐤𝐓𝐨𝐤, 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤, 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦, 𝐘𝐨𝐮𝐓𝐮𝐛𝐞, 𝐗 𝐚𝐧𝐝 𝐦𝐨𝐫𝐞.",
     category: "media",
   },
 
-  onStart: async function({ api, event }) {
-    api.sendMessage("Auto download mod", event.threadID);
+  onStart: async function ({ api, event }) {
+    api.sendMessage("𝐀𝐮𝐭𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐦𝐨𝐝 𝐚𝐜𝐭𝐢𝐯𝐚𝐭𝐞𝐝.", event.threadID);
   },
 
-  onChat: async function({ api, event }) {
+  onChat: async function ({ api, event }) {
     const text = event.body || "";
     if (!text) return;
 
@@ -40,34 +40,39 @@ module.exports = {
 
     try {
       const waitMsg = await api.sendMessage(
-        "Downloading please wait a few moment......!!",
+        "𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐩𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝐚 𝐟𝐞𝐰 𝐦𝐨𝐦𝐞𝐧𝐭...!! (;´༎ຶٹ༎ຶ`)",
         event.threadID
       );
 
-      // 🔹  API এখানে ব্যবহার হচ্ছে
-      const PROXY_BASE = "https://arafat-video-downlod-api.vercel.app";
-      const PROXY_KEY = "my_super_secret_key_123"; // do not change api and key
+      // GitHub থেকে API Base লোড
+      const gitRaw = "https://raw.githubusercontent.com/Arafat-Core/cmds/refs/heads/main/api.json";
+      const apiJson = (await axios.get(gitRaw)).data;
 
-      const { data } = await axios.get(`${PROXY_BASE}/alldl`, {
-        params: { url: url, key: PROXY_KEY },
+      if (!apiJson?.api) throw new Error("𝐀𝐏𝐈 𝐁𝐚𝐬𝐞 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
+
+      const BASE_API = `${apiJson.api}/all-dl/all-dl`;
+
+      const { data } = await axios.get(BASE_API, {
+        params: { url: url },
         timeout: 30000
       });
 
-      if (!data?.result) throw new Error("Not Found.....!!");
+      if (!data?.url) throw new Error("𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐔𝐑𝐋 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
 
-      const videoBuffer = (await axios.get(data.result, { responseType: "arraybuffer" })).data;
-      const videoPath = path.join(__dirname, "cache", `autodl_${Date.now()}.mp4`);
-      fs.writeFileSync(videoPath, videoBuffer);
+      const videoBuffer = (await axios.get(data.url, { responseType: "arraybuffer" })).data;
+
+      const savePath = path.join(__dirname, "cache", `autodl_${Date.now()}.mp4`);
+      fs.writeFileSync(savePath, videoBuffer);
 
       await api.unsendMessage(waitMsg.messageID);
 
       await api.sendMessage({
-        body: `${data.cp || "Video Download successfully ✅"}`,
-        attachment: fs.createReadStream(videoPath)
-      }, event.threadID, () => fs.unlinkSync(videoPath), event.messageID);
+        body: data.cp || "𝐕𝐢𝐝𝐞𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐞𝐝 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲! ✅",
+        attachment: fs.createReadStream(savePath)
+      }, event.threadID, () => fs.unlinkSync(savePath), event.messageID);
 
     } catch (err) {
-      api.sendMessage(`⚠️ Error: ${err.message}`, event.threadID, event.messageID);
+      api.sendMessage(`⚠️ 𝐄𝐫𝐫𝐨𝐫: ${err.message}`, event.threadID, event.messageID);
     }
   }
 };
