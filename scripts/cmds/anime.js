@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const mahmud = async () => {
-  const response = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
+  const response = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
   return response.data.mahmud;
 };
 
@@ -47,7 +47,7 @@ module.exports = {
       }, 5000);
 
       const apiUrl = await mahmud();
-      const res = await axios.get(`${apiUrl}/api/album/videos/anime?userID=${event.senderID}`);
+      const res = await axios.get(`${apiUrl}/api/album/mahmud/videos/anime?userID=${event.senderID}`);
       if (!res.data.success || !res.data.videos.length)
         return api.sendMessage("❌ | No videos found.", event.threadID, event.messageID);
 
