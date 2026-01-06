@@ -38,12 +38,10 @@ module.exports = {
 
     if (!supported.some(domain => url.includes(domain))) return;
 
-    // ===========================
-    // CACHE FOLDER AUTO-CREATE
-    // ===========================
+  
     const cachePath = path.join(__dirname, "cache");
     if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath);
-    // ===========================
+    
 
     try {
       const waitMsg = await api.sendMessage(

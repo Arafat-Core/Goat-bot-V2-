@@ -1,16 +1,15 @@
 const axios = require('axios');
-const fs = require('fs');
 
 module.exports = {
   config: {
     name: 'pinterest',
     aliases: ['pin', 'pinterestsearch'],
-    version: '1.0.2',
+    version: '1.0.3',
     author: 'Arafat',
     cooldown: 5,
     role: 0,
-    shortDescription: '𝐏𝐢𝐧𝐭𝐞𝐫𝐞𝐬𝐭 𝐈𝐦𝐚𝐠𝐞 𝐒𝐞𝐚𝐫𝐜𝐡',
-    longDescription: '𝐒𝐞𝐚𝐫𝐜𝐡 𝐢𝐦𝐚𝐠𝐞𝐬 𝐯𝐢𝐚 𝐏𝐢𝐧𝐭𝐞𝐫𝐞𝐬𝐭',
+    shortDescription: 'Pinterest Image Search',
+    longDescription: 'Search images via Pinterest',
     category: 'search'
   },
 
@@ -20,7 +19,7 @@ module.exports = {
     try {
       if (!args || args.length === 0) {
         return api.sendMessage(
-          "𝐔𝐬𝐚𝐠𝐞: .pinterest <search item> [amount]\n𝐄𝐱𝐚𝐦𝐩𝐥𝐞: .pinterest naruto 50",
+          "Usage: .pinterest <search item> [amount]\nExample: .pinterest naruto 50",
           threadID
         );
       }
@@ -30,8 +29,9 @@ module.exports = {
       const lastArg = args[args.length - 1];
       const parsed = parseInt(lastArg, 10);
 
+      
       if (!isNaN(parsed) && args.length > 1) {
-        limit = parsed;  
+        limit = parsed;
         query = args.slice(0, -1).join(' ');
       }
 
@@ -39,7 +39,7 @@ module.exports = {
       const url = `${apiBase}?search=${encodeURIComponent(query)}&limit=${limit}`;
 
       const loadingMsg = await api.sendMessage(
-        `𝐒𝐞𝐚𝐫𝐜𝐡𝐢𝐧𝐠 𝐟𝐨𝐫 '${query}'\n𝐏𝐥𝐞𝐚𝐬𝐞 𝐖𝐚𝐢𝐭... (𝐀𝐦𝐨𝐮𝐧𝐭: ${limit})`,
+        `Searching '${query}'`,
         threadID
       );
 
@@ -54,51 +54,32 @@ module.exports = {
 
       if (!images || images.length === 0) {
         try { await api.unsendMessage(loadingMsg.messageID); } catch (e) {}
-        return api.sendMessage(`𝐍𝐨 𝐢𝐦𝐚𝐠𝐞𝐬 𝐟𝐨𝐮𝐧𝐝 𝐟𝐨𝐫 '${query}'.`, threadID);
+        return api.sendMessage(`No images found for '${query}'.`, threadID);
       }
 
       const sendLimit = Math.min(limit, images.length);
-      const batches = [];
+      const attachments = [];
 
-      for (let i = 0; i < sendLimit; i += 5) {
-        batches.push(images.slice(i, i + 5));
+      
+      for (const imgUrl of images.slice(0, sendLimit)) {
+        try {
+          if (utils && typeof utils.getStreamFromURL === 'function') {
+            attachments.push(await utils.getStreamFromURL(imgUrl));
+          } else {
+            const img = await axios.get(imgUrl, { responseType: 'stream' });
+            attachments.push(img.data);
+          }
+        } catch (e) {
+          console.log("Failed to load:", imgUrl);
+        }
       }
 
-      for (const batch of batches) {
-        const attachments = [];
-
-        for (const imgUrl of batch) {
-          try {
-            if (utils && typeof utils.getStreamFromURL === 'function') {
-              attachments.push(await utils.getStreamFromURL(imgUrl));
-            } else {
-              attachments.push(imgUrl);
-            }
-          } catch {
-            attachments.push(null);
-          }
-        }
-
-        try {
-          const valid = attachments.filter(a => !!a);
-
-          if (valid.length > 0) {
-            await api.sendMessage(
-              { body: `𝐇𝐞𝐫𝐞 𝐚𝐫𝐞 ${valid.length} 𝐢𝐦𝐚𝐠𝐞𝐬 𝐟𝐨𝐫 '${query}':`, attachment: valid },
-              threadID
-            );
-          }
-
-          const failed = batch.filter((_, i) => !attachments[i]);
-          for (const urlFail of failed) {
-            await api.sendMessage(`𝐈𝐦𝐚𝐠𝐞 𝐋𝐢𝐧𝐤: ${urlFail}`, threadID);
-          }
-
-        } catch {
-          for (const imgUrl of batch) {
-            await api.sendMessage(`𝐈𝐦𝐚𝐠𝐞: ${imgUrl}`, threadID);
-          }
-        }
+      
+      if (attachments.length > 0) {
+        await api.sendMessage(
+          { attachment: attachments },
+          threadID
+        );
       }
 
       try { await api.unsendMessage(loadingMsg.messageID); } catch {}
@@ -106,9 +87,7 @@ module.exports = {
     } catch (error) {
       console.error('Pinterest Error:', error);
       try {
-        if (event && event.threadID) {
-          await api.sendMessage('𝐒𝐞𝐫𝐯𝐞𝐫 𝐄𝐫𝐫𝐨𝐫. 𝐓𝐫𝐲 𝐀𝐠𝐚𝐢𝐧.', event.threadID);
-        }
+        await api.sendMessage('Server error. Try again later.', event.threadID);
       } catch {}
     }
   }
