@@ -40,7 +40,6 @@ module.exports = {
           hour12: true
         });
 
-        /* ===== ONLY API CHANGED ===== */
         const apiUrl =
           `https://welcome-api-iljo.onrender.com/api/welcome-arafat?name=${encodeURIComponent(fullName)}&uid=${userId}&threadname=${encodeURIComponent(groupName)}&members=${memberCount}`;
 
