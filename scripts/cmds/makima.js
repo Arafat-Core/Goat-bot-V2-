@@ -1,32 +1,31 @@
-
 const axios = require("axios");
 
 module.exports = {
   config: {
-    name: "goku",
+    name: "makima",
     version: "1.0",
     author: "Arafat",
     countDown: 10,
     role: 0,
-    shortDescription: "goku Video",
-    longDescription: "goku Video",
+    shortDescription: "makima Video",
+    longDescription: "makima Video",
     category: "Anime",
     guide: { en: "{pn} | {pn} <keyword>" }
   },
 
   onStart: async function ({ api, event, args }) {
-    const EMOJIS = ["🔥","⚡","🖤","👑","💥"];
+    const EMOJIS = ["🎀","💖","✨","🌸","💫","💝","🩷","🌷"];
     const EMOJI = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
 
     const TEXT = {
-      title: `${EMOJI}Goku 𝐕𝐢𝐝𝐞𝐨`,
+      title: `${EMOJI}𝐌𝐚𝐤𝐢𝐦𝐚 𝐕𝐢𝐝𝐞𝐨`,
       notFound: "𝐤𝐨𝐧𝐨 𝐯𝐢𝐝𝐞𝐨 𝐩𝐚𝐰𝐚 𝐣𝐚𝐲 𝐧𝐚𝐢 ❌",
       error: "𝐀𝐢 𝐭𝐚 𝐤𝐢 𝐤𝐨𝐫𝐥𝐚 😒",
       blocked: "❌ 𝐘𝐨𝐮𝐫 𝐛𝐨𝐭 𝐢𝐬 𝐭𝐞𝐦𝐩𝐨𝐫𝐚𝐫𝐢𝐥𝐲 𝐮𝐧𝐬𝐞𝐧𝐝 𝐛𝐥𝐨𝐜𝐤"
     };
 
-    let keyword = "goku";
-    if (args.length) keyword = `goku ${args.join(" ")}`;
+    let keyword = "makima edit";
+    if (args.length) keyword = `makima ${args.join(" ")}`;
 
     try {
       const res = await axios.get(
@@ -43,19 +42,12 @@ module.exports = {
 
       try {
         await api.sendMessage(
-          {
-            body: `${TEXT.title}
-⏱ 𝐃𝐮𝐫𝐚𝐭𝐢𝐨𝐧: ${d.duration || "?"}s`,
-            attachment: await global.utils.getStreamFromURL(d.videoUrl)
-          },
+          { body: `${TEXT.title}\n⏱ 𝐃𝐮𝐫𝐚𝐭𝐢𝐨𝐧: ${d.duration || "?"}s`,
+            attachment: await global.utils.getStreamFromURL(d.videoUrl) },
           event.threadID, event.messageID
         );
-      } catch {
-        api.sendMessage(TEXT.blocked, event.threadID, event.messageID);
-      }
+      } catch { api.sendMessage(TEXT.blocked, event.threadID, event.messageID); }
 
-    } catch {
-      api.sendMessage(TEXT.blocked, event.threadID, event.messageID);
-    }
+    } catch { api.sendMessage(TEXT.blocked, event.threadID, event.messageID); }
   }
 };

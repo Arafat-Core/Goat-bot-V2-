@@ -3,13 +3,13 @@ const axios = require("axios");
 
 module.exports = {
   config: {
-    name: "goku",
+    name: "inosuke",
     version: "1.0",
     author: "Arafat",
     countDown: 10,
     role: 0,
-    shortDescription: "goku Video",
-    longDescription: "goku Video",
+    shortDescription: "inosuke Video",
+    longDescription: "inosuke Video",
     category: "Anime",
     guide: { en: "{pn} | {pn} <keyword>" }
   },
@@ -19,14 +19,14 @@ module.exports = {
     const EMOJI = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
 
     const TEXT = {
-      title: `${EMOJI}Goku 𝐕𝐢𝐝𝐞𝐨`,
+      title: `${EMOJI}Inosuke 𝐕𝐢𝐝𝐞𝐨`,
       notFound: "𝐤𝐨𝐧𝐨 𝐯𝐢𝐝𝐞𝐨 𝐩𝐚𝐰𝐚 𝐣𝐚𝐲 𝐧𝐚𝐢 ❌",
       error: "𝐀𝐢 𝐭𝐚 𝐤𝐢 𝐤𝐨𝐫𝐥𝐚 😒",
       blocked: "❌ 𝐘𝐨𝐮𝐫 𝐛𝐨𝐭 𝐢𝐬 𝐭𝐞𝐦𝐩𝐨𝐫𝐚𝐫𝐢𝐥𝐲 𝐮𝐧𝐬𝐞𝐧𝐝 𝐛𝐥𝐨𝐜𝐤"
     };
 
-    let keyword = "goku";
-    if (args.length) keyword = `goku ${args.join(" ")}`;
+    let keyword = "inosuke";
+    if (args.length) keyword = `inosuke ${args.join(" ")}`;
 
     try {
       const res = await axios.get(
