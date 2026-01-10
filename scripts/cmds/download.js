@@ -2,81 +2,149 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 
+let fontMap = null;
+
+async function loadFont() {
+  if (fontMap) return fontMap;
+  const res = await axios.get(
+    "https://raw.githubusercontent.com/Arafat-Core/Arafat-Temp/refs/heads/main/font.json"
+  );
+  fontMap = res.data;
+  return fontMap;
+}
+
+async function ensureFont() {
+  if (!fontMap) await loadFont();
+}
+
+function font(text = "") {
+  if (!fontMap) return text;
+  return text.split("").map(c => fontMap[c] || c).join("");
+}
+
 module.exports = {
   config: {
     name: "download",
-    version: "2.3.0",
+    version: "4.2.1",
     author: "Arafat",
-    countDown: 0,
     role: 0,
-    shortDescription: "𝐀𝐮𝐭𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐰𝐡𝐞𝐧 𝐥𝐢𝐧𝐤 𝐬𝐞𝐧𝐭",
-    longDescription: "𝐀𝐮𝐭𝐨𝐦𝐚𝐭𝐢𝐜𝐚𝐥𝐥𝐲 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐬 𝐯𝐢𝐝𝐞𝐨𝐬 𝐟𝐫𝐨𝐦 𝐓𝐢𝐤𝐓𝐨𝐤, 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤, 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦, 𝐘𝐨𝐮𝐓𝐮𝐛𝐞, 𝐗 𝐚𝐧𝐝 𝐦𝐨𝐫𝐞.",
-    category: "media",
+    countDown: 0,
+    shortDescription: "Auto media downloader",
+    longDescription: "Auto download from TikTok, Instagram, Facebook, YouTube",
+    category: "media"
   },
 
-  onStart: async function ({ api, event }) {
-    api.sendMessage("𝐀𝐮𝐭𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐦𝐨𝐝 𝐚𝐜𝐭𝐢𝐯𝐚𝐭𝐞𝐝.", event.threadID);
+  onStart: async function () {
+    return;
   },
 
   onChat: async function ({ api, event }) {
     const text = event.body || "";
     if (!text) return;
 
-    const url = text.match(/https?:\/\/[^\s]+/g)?.[0];
+    const url = text.match(/https?:\/\/[^\s]+/)?.[0];
     if (!url) return;
 
-    const supported = [
+    const allow = [
       "tiktok.com",
-      "facebook.com",
+      "vt.tiktok.com",
       "instagram.com",
+      "facebook.com",
+      "fb.watch",
       "youtu.be",
       "youtube.com",
       "x.com",
-      "twitter.com",
-      "fb.watch"
+      "twitter.com"
     ];
+    if (!allow.some(d => url.includes(d))) return;
 
-    if (!supported.some(domain => url.includes(domain))) return;
+    await ensureFont();
 
-  
-    const cachePath = path.join(__dirname, "cache");
-    if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath);
-    
+    const cacheDir = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
+    let waitMsg;
     try {
-      const waitMsg = await api.sendMessage(
-        "𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐩𝐥𝐞𝐚𝐬𝐞 𝐰𝐚𝐢𝐭 𝐚 𝐟𝐞𝐰 𝐦𝐨𝐦𝐞𝐧𝐭...!!",
+      waitMsg = await api.sendMessage(
+        font("Downloading, please wait..."),
         event.threadID
       );
 
-      const gitRaw = "https://raw.githubusercontent.com/Arafat-Core/cmds/refs/heads/main/api.json";
-      const apiJson = (await axios.get(gitRaw)).data;
+      const apiJson = (
+        await axios.get(
+          "https://raw.githubusercontent.com/Arafat-Core/cmds/refs/heads/main/api.json"
+        )
+      ).data;
 
-      if (!apiJson?.api) throw new Error("𝐀𝐏𝐈 𝐁𝐚𝐬𝐞 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
-
-      const BASE_API = `${apiJson.api}/arafatdl/all-dl`;
-
-      const { data } = await axios.get(BASE_API, {
-        params: { url: url },
-        timeout: 30000
+      const BASE = apiJson.download;
+      const { data } = await axios.get(`${BASE}/download`, {
+        params: { url }
       });
 
-      if (!data?.url) throw new Error("𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐔𝐑𝐋 𝐍𝐨𝐭 𝐅𝐨𝐮𝐧𝐝!");
+      if (!data?.success) throw new Error("API failed");
 
-      const videoBuffer = (await axios.get(data.url, { responseType: "arraybuffer" })).data;
-      const savePath = path.join(cachePath, `autodl_${Date.now()}.mp4`);
+      if (waitMsg?.messageID) await api.unsendMessage(waitMsg.messageID);
 
-      fs.writeFileSync(savePath, videoBuffer);
+      if (data.type === "tiktok" && data.data.type === "photo") {
+        const attachments = [];
 
-      await api.unsendMessage(waitMsg.messageID);
+        for (let i = 0; i < data.data.images.length; i++) {
+          const img = data.data.images[i];
+          const buffer = (
+            await axios.get(img, { responseType: "arraybuffer" })
+          ).data;
 
-      await api.sendMessage({
-        body: data.cp || "𝐕𝐢𝐝𝐞𝐨 𝐝𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐞𝐝 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲! ✅",
-        attachment: fs.createReadStream(savePath)
-      }, event.threadID, () => fs.unlinkSync(savePath), event.messageID);
+          const imgPath = path.join(
+            cacheDir,
+            `tt_${Date.now()}_${i}.jpg`
+          );
+          fs.writeFileSync(imgPath, buffer);
+          attachments.push(fs.createReadStream(imgPath));
+        }
 
-    } catch (err) {
-      api.sendMessage(`⚠️ 𝐄𝐫𝐫𝐨𝐫: 𝐀𝐫𝐚𝐟𝐚𝐭 𝐅𝐢𝐱𝐢𝐧𝐠 𝐓𝐡𝐞 𝐄𝐫𝐫𝐨𝐫 ༼ つ ◕◡◕ ༽つ`, event.threadID, event.messageID);
+        return api.sendMessage(
+          {
+            body: font(data.data.title || "TikTok Photo"),
+            attachment: attachments
+          },
+          event.threadID,
+          () => attachments.forEach(a => fs.unlinkSync(a.path)),
+          event.messageID
+        );
+      }
+
+      const videoUrl =
+        data?.data?.url ||
+        data?.data?.download_url ||
+        data?.data?.hd;
+
+      if (!videoUrl) throw new Error("No media url");
+
+      const buffer = (
+        await axios.get(videoUrl, { responseType: "arraybuffer" })
+      ).data;
+
+      const filePath = path.join(cacheDir, `dl_${Date.now()}.mp4`);
+      fs.writeFileSync(filePath, buffer);
+
+      return api.sendMessage(
+        {
+          body: font(data?.data?.title || "Downloaded successfully"),
+          attachment: fs.createReadStream(filePath)
+        },
+        event.threadID,
+        () => fs.unlinkSync(filePath),
+        event.messageID
+      );
+    } catch {
+      if (waitMsg?.messageID)
+        await api.unsendMessage(waitMsg.messageID);
+
+      api.sendMessage(
+        font("⚠ Download failed. Please try another link."),
+        event.threadID,
+        event.messageID
+      );
     }
   }
 };
