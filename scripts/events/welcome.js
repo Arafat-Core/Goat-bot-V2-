@@ -41,7 +41,7 @@ module.exports = {
         });
 
         const apiUrl =
-          `https://welcome-api-iljo.onrender.com/api/welcome-arafat?name=${encodeURIComponent(fullName)}&uid=${userId}&threadname=${encodeURIComponent(groupName)}&members=${memberCount}`;
+          `https://welcome-v2.vercel.app/api/welcome-arafat?name=${encodeURIComponent(fullName)}&uid=${userId}&threadname=${encodeURIComponent(groupName)}&members=${memberCount}`;
 
         const tmp = path.join(__dirname, "..", "cache");
         await fs.ensureDir(tmp);
